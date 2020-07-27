@@ -44,6 +44,7 @@ if os.path.exists('authorized_chats.txt'):
 try:
     BOT_TOKEN = getConfig('BOT_TOKEN')
     OWNER_ID = int(getConfig('OWNER_ID'))
+    telegraph_token = getConfig('TELEGRAPH_TOKEN')
 except KeyError as e:
     LOGGER.error("One or more env variables missing! Exiting now")
     exit(1)
@@ -70,9 +71,7 @@ else :
     LOGGER.error("Fill up drive id's in drive_index.txt")
     exit(1)
 
-
-telegra_ph = Telegraph()
-telegra_ph.create_account(short_name='Asta')
+telegra_ph = Telegraph(access_token=telegraph_token)
 
 updater = tg.Updater(token=BOT_TOKEN,use_context=True)
 bot = updater.bot
