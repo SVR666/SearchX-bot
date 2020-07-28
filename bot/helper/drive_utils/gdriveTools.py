@@ -17,7 +17,7 @@ LOGGER = logging.getLogger(__name__)
 logging.getLogger('googleapiclient.discovery').setLevel(logging.ERROR)
 
 SIZE_UNITS = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
-TELEGRAPHLIMIT = 90
+TELEGRAPHLIMIT = 95
 
 class GoogleDriveHelper:
     def __init__(self, name=None, listener=None):
@@ -87,18 +87,22 @@ class GoogleDriveHelper:
                     content += f'<b> | <a href="https://telegra.ph/{self.path[nxt_page]}">Next</a></b>'
                     nxt_page += 1
             telegra_ph.edit_page(path = self.path[prev_page],
-            	                 title = 'LoaderX',
+                                 title = 'LoaderX',
                                  html_content=content)
         return
 
     def drive_list(self, fileName):
-        msg = f'<h3>Search Results for : {fileName}</h3><br>'
+        msg = ''
         INDEX = -1
         content_count = 0
+        add_title_msg = True
         for parent_id in DRIVE_ID :
             response = self.drive_query(parent_id, fileName)    
             INDEX += 1          
-            if response: 
+            if response:
+                if add_title_msg == True:
+                    msg = f'<h3>Search Results for : {fileName}</h3><br>@LoaderXbot #ProjektX<br><br>'
+                    add_title_msg = False
                 msg += f"╾────────────╼<br><b>{DRIVE_NAME[INDEX]}</b><br>╾────────────╼<br>"
                 for file in response:
                     if file.get('mimeType') == "application/vnd.google-apps.folder":  # Detect Whether Current Entity is a Folder or File.
@@ -121,6 +125,12 @@ class GoogleDriveHelper:
                        self.telegraph_content.append(msg)
                        msg = ""
                        content_count = 0
+
+        if msg != '':
+            self.telegraph_content.append(msg)
+
+        if len(self.telegraph_content) == 0:
+            return "No Result Found :(", None
 
         for content in self.telegraph_content :
             self.path.append(telegra_ph.create_page(title = 'LoaderX',
