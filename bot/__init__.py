@@ -49,26 +49,26 @@ except KeyError as e:
     LOGGER.error("One or more env variables missing! Exiting now")
     exit(1)
 
+DRIVE_NAME = []
 DRIVE_ID = []
-INDEX_URL = {}
+INDEX_URL = []
 
-if os.path.exists('drive_index.txt'):
-    count = 0
-    with open('drive_index.txt', 'r+') as f:
+if os.path.exists('drive_folder'):
+    with open('drive_folder', 'r+') as f:
         lines = f.readlines()
         for line in lines:
             temp = line.strip().split()
-            DRIVE_ID.append(temp[0])
+            DRIVE_NAME.append(temp[0].replace("_", " "))
+            DRIVE_ID.append(temp[1])
             try:
-                INDEX_URL[count] = temp[1]
+                INDEX_URL.append(temp[2])
             except IndexError as e:
-                INDEX_URL[count] = None
-            count += 1
+                INDEX_URL.append(None)
 
 if DRIVE_ID :
     pass
 else :
-    LOGGER.error("Fill up drive id's in drive_index.txt")
+    LOGGER.error("The README.md file there to be read! Exiting now!")
     exit(1)
 
 telegra_ph = Telegraph(access_token=telegraph_token)

@@ -25,25 +25,15 @@ Fill up rest of the fields. Meaning of each fields are discussed below:
 python3 telegraph_token.py
 ```
 
-## Setting up drive_index file
+## Setting up drive_folder file
 
-- Add drive id & index url (optional) corresponding to each id to drive_index file , each separated by new line.
+- The bot is unable to search in sub-directories, but you can specify directories in which you wanna search.
+- Add drive/folder name(anything that u likes), drive id/folder id & index url(optional) corresponding to each id.
+- If you are adding a folder id and you wish to use index url, then add index url corresponding to that folder.
 
-### Example:
-
-- Adding drive id
+- Run driveid.py and follow the screen.
 ```
-abc82nsier2siopqaxbmjgd5s64w3az3x
-zxa82nsnnh2sio00ikbmjuy5s76w312qa
-```
-- Adding index url(optional)
-```
-abc82nsier2siopqaxbmjgd5s64w3az3x https://IndexUrl.of_first_id.workers.dev/0:
-zxa82nsnnh2sio00ikbmjuy5s76w312qa https://IndexUrl.of_second_id.workers.dev/0:
-```
-
-```
-Note : There is a space between drive id and index url
+python3 driveid.py
 ```
 
 ## Getting Google OAuth API credential file

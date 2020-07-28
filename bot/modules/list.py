@@ -9,17 +9,18 @@ from bot.helper.telegram_helper.bot_commands import BotCommands
 def list_drive(update,context):
     try:
         search = update.message.text.split(' ',maxsplit=1)[1]
-        reply = sendMessage('Searching...', context.bot, update)
-
-        LOGGER.info(f"Searching: {search}")
-        
-        gdrive = GoogleDriveHelper(None)
-        msg, button = gdrive.drive_list(search)
-
-        editMessage(msg,reply,button)
-
     except IndexError:
         sendMessage('send a search key along with command', context.bot, update)
+        return
+        
+    reply = sendMessage('Searching...', context.bot, update)
+
+    LOGGER.info(f"Searching: {search}")
+        
+    gdrive = GoogleDriveHelper(None)
+    msg, button = gdrive.drive_list(search)
+
+    editMessage(msg,reply,button)
 
 
 list_handler = CommandHandler(BotCommands.ListCommand, list_drive,filters=CustomFilters.authorized_chat | CustomFilters.authorized_user)

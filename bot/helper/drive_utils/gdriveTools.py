@@ -11,12 +11,13 @@ from googleapiclient.errors import HttpError
 
 from telegram import InlineKeyboardMarkup
 from bot.helper.telegram_helper import button_builder
-from bot import DRIVE_ID, INDEX_URL, telegra_ph
+from bot import DRIVE_NAME, DRIVE_ID, INDEX_URL, telegra_ph
 
 LOGGER = logging.getLogger(__name__)
 logging.getLogger('googleapiclient.discovery').setLevel(logging.ERROR)
 
 SIZE_UNITS = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
+TELEGRAPHLIMIT = 90
 
 class GoogleDriveHelper:
     def __init__(self, name=None, listener=None):
@@ -24,6 +25,8 @@ class GoogleDriveHelper:
         # Check https://developers.google.com/drive/scopes for all available scopes
         self.__OAUTH_SCOPE = ['https://www.googleapis.com/auth/drive']
         self.__service = self.authorize()
+        self.telegraph_content = []
+        self.path = []
 
     def get_readable_file_size(self,size_in_bytes) -> str:
         if size_in_bytes is None:
@@ -58,51 +61,77 @@ class GoogleDriveHelper:
                 pickle.dump(credentials, token)
         return build('drive', 'v3', credentials=credentials, cache_discovery=False)
 
-    def drive_list(self, fileName):
-        msg = f'<h4>Search Results for : {fileName}</h4><br>@LoaderXbot #ProjektX<br><br>'
-        # Create Search Query for API request.
-        INDEX_ID = 0
-        for parent_id in DRIVE_ID :
-            query = f"'{parent_id}' in parents and (name contains '{fileName}')"
-            response = self.__service.files().list(supportsTeamDrives=True,
+    def drive_query(self, parent_id, fileName):
+        query = f"'{parent_id}' in parents and (name contains '{fileName}')"
+        response = self.__service.files().list(supportsTeamDrives=True,
                                                includeTeamDriveItems=True,
                                                q=query,
                                                spaces='drive',
-                                               pageSize=100,
+                                               pageSize=200,
                                                fields='files(id, name, mimeType, size)',
-                                               orderBy='modifiedTime desc').execute()
-            index_url = INDEX_URL[INDEX_ID]
-            INDEX_ID += 1
-            msg += f"╾────────────╼<br><b>Team Drive : {INDEX_ID}</b><br>╾────────────╼<br>"
-            if response["files"]:
-                for file in response.get('files', []):
+                                               orderBy='modifiedTime desc').execute()["files"]
+        return response
+
+    def edit_telegraph(self):
+        nxt_page = 1 
+        prev_page = 0
+        for content in self.telegraph_content :
+            if nxt_page == 1 :
+                content += f'<b><a href="https://telegra.ph/{self.path[nxt_page]}">Next</a></b>'
+                nxt_page += 1
+            else :
+                if prev_page <= self.num_of_path:
+                    content += f'<b><a href="https://telegra.ph/{self.path[prev_page]}">Prev</a></b>'
+                    prev_page += 1
+                if nxt_page < self.num_of_path:
+                    content += f'<b> | <a href="https://telegra.ph/{self.path[nxt_page]}">Next</a></b>'
+                    nxt_page += 1
+            telegra_ph.edit_page(path = self.path[prev_page],
+            	                 title = 'LoaderX',
+                                 html_content=content)
+        return
+
+    def drive_list(self, fileName):
+        msg = f'<h3>Search Results for : {fileName}</h3><br>'
+        INDEX = -1
+        content_count = 0
+        for parent_id in DRIVE_ID :
+            response = self.drive_query(parent_id, fileName)    
+            INDEX += 1          
+            if response: 
+                msg += f"╾────────────╼<br><b>{DRIVE_NAME[INDEX]}</b><br>╾────────────╼<br>"
+                for file in response:
                     if file.get('mimeType') == "application/vnd.google-apps.folder":  # Detect Whether Current Entity is a Folder or File.
                         msg += f"📁<code>{file.get('name')}</code> <b>(folder)</b><br>" \
                                f"<b><a href='https://drive.google.com/drive/folders/{file.get('id')}'>Drive Link</a></b>"
-                        if index_url is not None:
+                        if INDEX_URL[INDEX] is not None:
                             url_path = requests.utils.quote(f'{file.get("name")}')
-                            url = f'{index_url}/{url_path}/'
-                            msg += f' <b>| <a href="{url}">Index Link</a></b>'
-
+                            url = f'{INDEX_URL[INDEX]}/{url_path}/'
+                            msg += f'<b> | <a href="{url}">Index Link</a></b>'
                     else:
                         msg += f"📄<code>{file.get('name')}</code> <b>({self.get_readable_file_size(file.get('size'))})</b><br>" \
                                f"<b><a href='https://drive.google.com/uc?id={file.get('id')}&export=download'>Drive Link</a></b>"
-                        if index_url is not None:
+                        if INDEX_URL[INDEX] is not None:
                             url_path = requests.utils.quote(f'{file.get("name")}')
-                            url = f'{index_url}/{url_path}'
-                            msg += f' <b>| <a href="{url}">Index Link</a></b>'
+                            url = f'{INDEX_URL[INDEX]}/{url_path}'
+                            msg += f'<b> | <a href="{url}">Index Link</a></b>'
                     msg += '<br><br>'
-            else :
-                msg += "⁍ <code>No Results</code><br><br>"
-        
-        response = telegra_ph.create_page(title = 'LoaderX',
-                                            author_name='svr666',
-                                            author_url='https://t.me/svr666',
-                                            html_content=msg
-                                            )['path']
+                    content_count += 1
+                    if content_count == TELEGRAPHLIMIT :
+                       self.telegraph_content.append(msg)
+                       msg = ""
+                       content_count = 0
 
-        msg = f"<b>Search Results For {fileName} 👇</b>"
+        for content in self.telegraph_content :
+            self.path.append(telegra_ph.create_page(title = 'LoaderX',
+                                                html_content=content )['path'])
+
+        self.num_of_path = len(self.path)      
+        if self.num_of_path > 1:
+            self.edit_telegraph()
+
+        msg = f" Search Results For {fileName} 👇 "
         buttons = button_builder.ButtonMaker()   
-        buttons.buildbutton("HERE", f"https://telegra.ph/{response}")
+        buttons.buildbutton("CLICK HERE", f"https://telegra.ph/{self.path[0]}")
 
         return msg, InlineKeyboardMarkup(buttons.build_menu(1))
