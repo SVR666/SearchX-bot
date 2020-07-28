@@ -9,6 +9,18 @@ git clone https://github.com/svr666/search-bot search-bot/
 cd search-bot
 ```
 
+### Install requirements
+
+- For Debian based distros
+```
+sudo apt install python3
+sudo snap install docker 
+```
+- For Arch and it's derivatives:
+```
+sudo pacman -S docker python
+```
+
 ## Setting up config file
 ```
 cp config_sample.env config.env
@@ -99,6 +111,19 @@ git commit -asm "Added hardcoded authorized_chats.txt"
 git push heroku heroku:master
 ```
 
+## Deploying on Server
+- Start docker daemon (skip if already running):
+```
+sudo dockerd
+```
+- Build Docker image:
+```
+sudo docker build . -t search-bot
+```
+- Run the image:
+```
+sudo docker run search-bot
+```
 # Credits :
 
 - python-aria-mirror-bot - [lzzy12](https://github.com/lzzy12/python-aria-mirror-bot)
