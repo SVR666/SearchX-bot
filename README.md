@@ -48,6 +48,10 @@ python3 telegraph_token.py
 python3 driveid.py
 ```
 
+## Authorizing Chats
+
+- Add telegram id of chats that u wanna authorize into the authorized_chats.txt file.
+
 ## Getting Google OAuth API credential file
 
 - Visit the [Google Cloud Console](https://console.developers.google.com/apis/credentials)
