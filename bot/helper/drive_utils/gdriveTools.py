@@ -8,6 +8,7 @@ from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+from requests.sessions import get_environ_proxies
 
 from telegram import InlineKeyboardMarkup
 from bot.helper.telegram_helper import button_builder
@@ -41,6 +42,7 @@ class GoogleDriveHelper:
         except IndexError:
             return 'File too large'
 
+
     def authorize(self):
         # Get credentials
         credentials = None
@@ -61,14 +63,43 @@ class GoogleDriveHelper:
                 pickle.dump(credentials, token)
         return build('drive', 'v3', credentials=credentials, cache_discovery=False)
 
+    def get_recursive_list(self, file, rootid = "root"):
+        rtnlist = []
+        if not rootid:
+            rootid = file.get('teamDriveId')
+        if rootid == "root":
+            rootid = self.__service.files().get(fileId = 'root', fields="id").execute().get('id')
+        x = file.get("name")
+        y = file.get("id")
+        while(y != rootid):
+            rtnlist.append(x)
+            file = self.__service.files().get(
+                                            fileId=file.get("parents")[0],
+                                            supportsAllDrives=True,
+                                            fields='id, name, parents'
+                                            ).execute()
+            x = file.get("name")
+            y = file.get("id")
+        rtnlist.reverse()
+        return rtnlist
+
     def drive_query(self, parent_id, fileName):
-        query = f"'{parent_id}' in parents and (name contains '{fileName}')"
-        response = self.__service.files().list(supportsTeamDrives=True,
+        query = f"name contains '{fileName}' and trashed=false and 'me' in owners"
+        if parent_id != "root":
+            response = self.__service.files().list(supportsTeamDrives=True,
                                                includeTeamDriveItems=True,
+                                               teamDriveId=parent_id,
                                                q=query,
+                                               corpora='drive',
                                                spaces='drive',
                                                pageSize=200,
-                                               fields='files(id, name, mimeType, size)',
+                                               fields='files(id, name, mimeType, size, teamDriveId, parents)',
+                                               orderBy='modifiedTime desc').execute()["files"]
+        else:
+            response = self.__service.files().list(q=query,
+                                               pageSize=200,
+                                               spaces='drive',
+                                               fields='files(id, name, mimeType, size, parents)',
                                                orderBy='modifiedTime desc').execute()["files"]
         return response
 
@@ -109,14 +140,14 @@ class GoogleDriveHelper:
                         msg += f"📁<code>{file.get('name')}</code> <b>(folder)</b><br>" \
                                f"<b><a href='https://drive.google.com/drive/folders/{file.get('id')}'>Drive Link</a></b>"
                         if INDEX_URL[INDEX] is not None:
-                            url_path = requests.utils.quote(f'{file.get("name")}')
+                            url_path = "/".join([requests.utils.quote(n, safe='') for n in self.get_recursive_list(file, parent_id)])
                             url = f'{INDEX_URL[INDEX]}/{url_path}/'
                             msg += f'<b> | <a href="{url}">Index Link</a></b>'
                     else:
                         msg += f"📄<code>{file.get('name')}</code> <b>({self.get_readable_file_size(file.get('size'))})</b><br>" \
                                f"<b><a href='https://drive.google.com/uc?id={file.get('id')}&export=download'>Drive Link</a></b>"
                         if INDEX_URL[INDEX] is not None:
-                            url_path = requests.utils.quote(f'{file.get("name")}')
+                            url_path = "/".join([requests.utils.quote(n, safe ='') for n in self.get_recursive_list(file, parent_id)])
                             url = f'{INDEX_URL[INDEX]}/{url_path}'
                             msg += f'<b> | <a href="{url}">Index Link</a></b>'
                     msg += '<br><br>'

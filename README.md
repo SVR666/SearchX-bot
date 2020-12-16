@@ -37,11 +37,17 @@ Fill up rest of the fields. Meaning of each fields are discussed below:
 python3 telegraph_token.py
 ```
 
+## Upgrading.
+
+If you are coming from last version where recursive searching was not possible, you must run driveid.py again and delete all previous content, and this time you just have to add Drives (Teamdrive or 'root' for Main Drive). See the section below for more.
+
+
 ## Setting up drive_folder file
 
-- The bot is unable to search in sub-directories, but you can specify directories in which you wanna search.
-- Add drive/folder name(anything that u likes), drive id/folder id & index url(optional) corresponding to each id.
-- If you are adding a folder id and you wish to use index url, then add index url corresponding to that folder.
+- ~The bot is unable to search in sub-directories, but you can specify directories in which you wanna search.~
+- The bot can now search in sub-directories, so you just need to specify the teamdrives you want to use. To use main drive, you can enter 'root' in the drive id.
+- Add drive name(anything that u likes), drive id & index url(optional) corresponding to each id.
+- ~If you are adding a folder id and you wish to use index url, then add index url corresponding to that folder.~ Don't enter folder id now, only Teamdrive Id.
 
 - Run driveid.py and follow the screen.
 ```
