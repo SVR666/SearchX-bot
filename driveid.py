@@ -1,8 +1,8 @@
 import os
 import re
 print("\n\n"\
-      "        Bot is not able to search in subfolder so if you likes to search\n"\
-      "        in a specific folder then u can add that folder id to search\n\n"
+      "        Bot can search files recursively, but you have to add the list of drives you want to search.\n"\
+      "        Use the following format: (You can use 'root' in the ID in case you wan to use main drive.)\n"\
       "        teamdrive NAME      -->   anything that u likes\n"\
       "        teamdrive ID        -->   id of teamdrives in which u likes to search ('root' for main drive)\n"\
       "        teamdrive INDEX URL -->   enter index url for this drive.\n" \
