@@ -84,7 +84,7 @@ class GoogleDriveHelper:
         return rtnlist
 
     def drive_query(self, parent_id, fileName):
-        query = f"name contains '{fileName}' and trashed=false and 'me' in owners"
+        query = f"name contains '{fileName}' and trashed=false"
         if parent_id != "root":
             response = self.__service.files().list(supportsTeamDrives=True,
                                                includeTeamDriveItems=True,
@@ -96,7 +96,7 @@ class GoogleDriveHelper:
                                                fields='files(id, name, mimeType, size, teamDriveId, parents)',
                                                orderBy='modifiedTime desc').execute()["files"]
         else:
-            response = self.__service.files().list(q=query,
+            response = self.__service.files().list(q=query + " and 'me' in owners",
                                                pageSize=200,
                                                spaces='drive',
                                                fields='files(id, name, mimeType, size, parents)',
