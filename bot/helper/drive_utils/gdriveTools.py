@@ -94,13 +94,13 @@ class GoogleDriveHelper:
                                                spaces='drive',
                                                pageSize=200,
                                                fields='files(id, name, mimeType, size, teamDriveId, parents)',
-                                               orderBy='modifiedTime desc').execute()["files"]
+                                               orderBy='folder, modifiedTime desc').execute()["files"]
         else:
             response = self.__service.files().list(q=query + " and 'me' in owners",
                                                pageSize=200,
                                                spaces='drive',
                                                fields='files(id, name, mimeType, size, parents)',
-                                               orderBy='modifiedTime desc').execute()["files"]
+                                               orderBy='folder, modifiedTime desc').execute()["files"]
         return response
 
     def edit_telegraph(self):
