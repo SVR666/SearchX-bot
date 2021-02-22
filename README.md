@@ -1,5 +1,5 @@
 ```diff 
-- Development stopped and Repo Dead.
+- [ Project Discontinued and Repo Dead ]
 ```
 
 # What is this repo about?
